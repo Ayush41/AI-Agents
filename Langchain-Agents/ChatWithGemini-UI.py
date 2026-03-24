@@ -5,7 +5,7 @@ import os
 from dotenv import load_dotenv
 
 # Load API key
-load_dotenv()
+# load_dotenv()
 
 # Streamlit page config
 st.set_page_config(page_title="LangChain + Gemini Chat", page_icon="🤖")
