@@ -121,6 +121,46 @@ class LangchainDemo:
         print(f"Title: {result['title']}")
         print(f"Story: {result['story']}")
 
+    # 6. Custom Tools for Agents
+    @tool
+    def multiply_numbers(a: int, b: int) -> int:
+        """Multiply two numbers"""
+        return a * b
+
+    @tool
+    def add_numbers(a: int, b: int) -> int:
+        """Add two numbers"""
+        return a + b
+
+    # 7. Agents
+    def agent_example(self):
+        """Using Agents with tools"""
+        print("\n=== 7. Agents with Tools ===")
+        
+        tools = [
+            Tool(
+                name="Multiply",
+                func=lambda x: int(x.split(",")[0]) * int(x.split(",")[1]),
+                description="Multiply two numbers separated by comma"
+            ),
+            Tool(
+                name="Add",
+                func=lambda x: int(x.split(",")[0]) + int(x.split(",")[1]),
+                description="Add two numbers separated by comma"
+            )
+        ]
+        
+        agent = initialize_agent(
+            tools=tools,
+            llm=self.llm,
+            agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
+            verbose=True
+        )
+        
+        result = agent.run("What is 5 times 3 plus 10?")
+        print(result)
+
+
 def main():
     """Run all demonstrations"""
     print("=" * 50)
