@@ -24,6 +24,102 @@ Comprehensive Langchain Program demonstrating core concepts with Gemini LLM
 load_dotenv()
 
 
+class LangchainDemo:
+    def __init__(self):
+        """Initialize Gemini LLM and components"""
+        self.llm = ChatGoogleGenerativeAI(
+            model="gemini-pro",
+            temperature=0.7,
+            google_api_key=os.getenv("GOOGLE_API_KEY")
+        )
+        self.embeddings = GoogleGenerativeAIEmbeddings(
+            model="models/embedding-001",
+            google_api_key=os.getenv("GOOGLE_API_KEY")
+        )
+
+    # 1. Basic LLM Invocation
+    def basic_llm_call(self):
+        """Simple LLM invocation"""
+        print("\n=== 1. Basic LLM Call ===")
+        response = self.llm.invoke("What is Langchain?")
+        print(response.content)
+
+    # 2. Prompt Templates
+    def prompt_templates(self):
+        """Using Prompt Templates"""
+        print("\n=== 2. Prompt Templates ===")
+        
+        # Simple template
+        template = PromptTemplate(
+            input_variables=["topic"],
+            template="Give me 3 interesting facts about {topic}"
+        )
+        
+        chain = LLMChain(llm=self.llm, prompt=template)
+        result = chain.invoke({"topic": "Python"})
+        print(result["text"])
+
+    # 3. Chat Prompt Templates
+    def chat_prompts(self):
+        """Using Chat Prompt Templates"""
+        print("\n=== 3. Chat Prompt Templates ===")
+        
+        prompt = ChatPromptTemplate.from_messages([
+            ("system", "You are a helpful programming assistant."),
+            ("human", "Explain {concept} in simple terms")
+        ])
+        
+        chain = LLMChain(llm=self.llm, prompt=prompt)
+        result = chain.invoke({"concept": "recursion"})
+        print(result["text"])
+
+    # 4. Memory Management
+    def memory_example(self):
+        """Using Conversation Memory"""
+        print("\n=== 4. Conversation Memory ===")
+        
+        memory = ConversationBufferMemory()
+        
+        prompt = ChatPromptTemplate.from_messages([
+            ("system", "You are a helpful assistant."),
+            ("human", "{input}")
+        ])
+        
+        chain = LLMChain(llm=self.llm, prompt=prompt, memory=memory)
+        
+        # Multi-turn conversation
+        print(chain.invoke({"input": "Hi, my name is Alice"})["text"])
+        print(chain.invoke({"input": "What's my name?"})["text"])
+
+    # 5. Sequential Chains
+    def sequential_chains(self):
+        """Chaining multiple LLM calls"""
+        print("\n=== 5. Sequential Chains ===")
+        
+        # First chain
+        template1 = PromptTemplate(
+            input_variables=["topic"],
+            template="Generate a creative title about {topic}"
+        )
+        chain1 = LLMChain(llm=self.llm, prompt=template1, output_key="title")
+        
+        # Second chain
+        template2 = PromptTemplate(
+            input_variables=["title"],
+            template="Write a short story based on this title: {title}"
+        )
+        chain2 = LLMChain(llm=self.llm, prompt=template2, output_key="story")
+        
+        # Sequential chain
+        overall_chain = SequentialChain(
+            chains=[chain1, chain2],
+            input_variables=["topic"],
+            output_variables=["title", "story"]
+        )
+        
+        result = overall_chain.invoke({"topic": "AI Revolution"})
+        print(f"Title: {result['title']}")
+        print(f"Story: {result['story']}")
 
 def main():
     """Run all demonstrations"""
@@ -34,9 +130,8 @@ def main():
     demo = LangchainDemo()
     
     try:
-        #to be implemented and calling these functions in the main function
         demo.basic_llm_call()
-        demo.prompt_templates() 
+        demo.prompt_templates()
         demo.chat_prompts()
         demo.memory_example()
         demo.sequential_chains()
