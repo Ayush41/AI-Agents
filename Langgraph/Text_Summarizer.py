@@ -46,7 +46,19 @@ class TextSummarizerAgent:
 
 
 def collect_input() -> str:
-
+    print("Enter the text you want to summarize. Press Enter twice to finish.")
+    lines = []
+    while True:
+        try:
+            line = input()
+        except EOFError:
+            break
+        if line.strip() == "":
+            if lines:
+                break
+            continue
+        lines.append(line)
+    return "\n".join(lines).strip()
 
 
 if __name__ == "__main__":
