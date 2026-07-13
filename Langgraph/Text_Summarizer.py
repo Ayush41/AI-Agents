@@ -1,9 +1,13 @@
 import re
+from typing import Optional
+
+import streamlit as st
 
 try:
     from langgraph import Agent
     from langgraph.llms import OpenAI
     from langgraph.prompts import Prompt
+
     LANGGRAPH_AVAILABLE = True
 except ImportError:
     LANGGRAPH_AVAILABLE = False
@@ -15,58 +19,38 @@ class TextSummarizerAgent:
         self.agent = None
         if LANGGRAPH_AVAILABLE:
             prompt_text = (
-                "You are a text summarization agent. "
+                "You are a polished text summarization assistant. "
                 "Read the input text and return a short, informative summary. "
-                "Keep the summary concise and easy to understand.\n\n{text}"
+                "Keep the summary clear, readable, and easy to understand.\n\n{text}"
             )
             prompt = Prompt(text=prompt_text, input_variables=["text"])
             llm = OpenAI(model_name=model_name)
             self.agent = Agent(prompt=prompt, llm=llm)
 
-    def summarize(self, text: str) -> str:
+    def summarize(self, text: str, style: str = "balanced") -> str:
         if self.agent:
             try:
                 return self.agent.run({"text": text})
             except Exception:
-                return self._fallback_summary(text)
-        return self._fallback_summary(text)
+                return self._fallback_summary(text, style)
+        return self._fallback_summary(text, style)
 
-    def _fallback_summary(self, text: str) -> str:
+    def _fallback_summary(self, text: str, style: str = "balanced") -> str:
         if not text.strip():
             return ""
 
-        sentences = re.split(r"(?<=[.!?])\s+", text.strip())
-        if len(sentences) <= 2:
-            return text.strip().replace("\n", " ")
+        cleaned_text = re.sub(r"\s+", " ", text.strip())
+        sentences = re.split(r"(?<=[.!?])\s+", cleaned_text)
+        sentences = [s.strip() for s in sentences if s.strip()]
 
-        summary = " ".join(sentences[:2]).strip()
-        if len(summary) > 280:
-            summary = summary[:280].rsplit(" ", 1)[0].strip() + "..."
+        if not sentences:
+            return ""
+
+        target_count = {"concise": 2, "balanced": 3, "detailed": 4}.get(style.lower(), 3)
+        selected = sentences[: min(target_count, len(sentences))]
+        summary = " ".join(selected)
+
+        if len(summary) > 320:
+            summary = summary[:320].rsplit(" ", 1)[0].strip() + "..."
         return summary
 
-
-def collect_input() -> str:
-    print("Enter the text you want to summarize. Press Enter twice to finish.")
-    lines = []
-    while True:
-        try:
-            line = input()
-        except EOFError:
-            break
-        if line.strip() == "":
-            if lines:
-                break
-            continue
-        lines.append(line)
-    return "\n".join(lines).strip()
-
-
-if __name__ == "__main__":
-    source_text = collect_input()
-    if not source_text:
-        print("No text provided. Exiting.")
-    else:
-        agent = TextSummarizerAgent()
-        summary = agent.summarize(source_text)
-        print("\nSummary:\n")
-        print(summary)
