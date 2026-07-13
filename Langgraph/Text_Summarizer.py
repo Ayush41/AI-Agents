@@ -24,10 +24,25 @@ class TextSummarizerAgent:
             self.agent = Agent(prompt=prompt, llm=llm)
 
     def summarize(self, text: str) -> str:
-
+        if self.agent:
+            try:
+                return self.agent.run({"text": text})
+            except Exception:
+                return self._fallback_summary(text)
+        return self._fallback_summary(text)
 
     def _fallback_summary(self, text: str) -> str:
+        if not text.strip():
+            return ""
 
+        sentences = re.split(r"(?<=[.!?])\s+", text.strip())
+        if len(sentences) <= 2:
+            return text.strip().replace("\n", " ")
+
+        summary = " ".join(sentences[:2]).strip()
+        if len(summary) > 280:
+            summary = summary[:280].rsplit(" ", 1)[0].strip() + "..."
+        return summary
 
 
 def collect_input() -> str:
