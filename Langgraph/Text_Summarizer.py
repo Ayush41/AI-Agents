@@ -58,22 +58,10 @@ class TextSummarizerAgent:
 def render_ui() -> None:
     st.set_page_config(page_title="Text Summarizer AI", page_icon="📝", layout="wide")
 
-    # st.markdown(
-    #     """
-    #     # <style>
-    #     # .stApp { background: linear-gradient(135deg, #f8fbff 0%, #eef6ff 100%); }
-    #     # .block-container { padding-top: 2rem; }
-    #     # .card {
-    #     #     background: white;
-    #     #     border-radius: 16px;
-    #     #     padding: 1.2rem;
-    #     #     box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
-    #     #     border: 1px solid #e2e8f0;
-    #     # }
-    #     # </style>
-    #     """,
-    #     unsafe_allow_html=True,
-    # )
+    if "source_text" not in st.session_state:
+        st.session_state["source_text"] = ""
+    if "summary" not in st.session_state:
+        st.session_state["summary"] = ""
 
     st.title("📝 Smart Text Summarizer")
     st.caption("Paste long content and get a crisp, readable summary in seconds.")
@@ -101,7 +89,6 @@ def render_ui() -> None:
             key="source_text",
             height=280,
             placeholder="Paste the text you want summarized here...",
-            value=st.session_state.get("source_text", ""),
         )
         st.markdown("</div>", unsafe_allow_html=True)
 
@@ -123,6 +110,7 @@ def render_ui() -> None:
         if st.button("🧹 Clear", use_container_width=True):
             st.session_state["source_text"] = ""
             st.session_state["summary"] = ""
+            st.session_state["clear_clicked"] = True
             st.rerun()
         st.markdown("</div>", unsafe_allow_html=True)
 
